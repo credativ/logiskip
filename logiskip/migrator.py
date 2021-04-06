@@ -5,7 +5,7 @@ from typing import Union
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Engine
 
-from .load import BaseLoad
+from .load import BaseLoad, load_registry
 
 
 class Migrator:
@@ -21,9 +21,8 @@ class Migrator:
             self.dest_engine = dest
 
         if isinstance(load, tuple):
-            self.load = BaseLoad.find_load(load[0], load[1])
-        else:
-            self.load = load
+            load = load_registry.find(load[0], load[1])
+        self.load = load(self.source_engine, self.dest_engine)
 
     def run(self) -> None:
         pass

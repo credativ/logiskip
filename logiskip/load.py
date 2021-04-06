@@ -57,4 +57,4 @@ class BaseLoad:
 
         self.dest_engine = dest
         self.dest_base = automap_base()
-        self.dest_base.prepate(self.dest_engine, reflect=True)
+        self.dest_base.prepare(self.dest_engine, reflect=True)
