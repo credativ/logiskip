@@ -168,7 +168,7 @@ class BaseLoad:
     def _convert_field_default(self, src_value: Any) -> Any:
         return src_value
 
-    def run(self) -> None:
+    def migrate(self) -> None:
         """Run the migration defined by this load"""
         # Handle all known tables in order
         with self.dest_engine.begin() as dest_conn:
