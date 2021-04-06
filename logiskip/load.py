@@ -3,7 +3,7 @@
 from typing import Any, Optional, Sequence, Union
 
 from semantic_version import SimpleSpec, Version
-from sqlalchemy import Table, insert, select
+from sqlalchemy import Table, create_engine, insert, select
 from sqlalchemy.engine import Connection
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.automap import automap_base
@@ -67,12 +67,18 @@ class BaseLoad:
 
         load_registry.register(name, version_constraint, cls)
 
-    def __init__(self, src: Engine, dest: Engine):
-        self.src_engine = src
+    def __init__(self, src: Union[Engine, str], dest: Union[Engine, str]):
+        if isinstance(src, str):
+            self.src_engine = create_engine(src)
+        else:
+            self.src_engine = src
         self.src_base = automap_base()
         self.src_base.prepare(self.src_engine, reflect=True)
 
-        self.dest_engine = dest
+        if isinstance(dest, str):
+            self.dest_engine = create_engine(dest)
+        else:
+            self.dest_engine = dest
         self.dest_base = automap_base()
         self.dest_base.prepare(self.dest_engine, reflect=True)
 
