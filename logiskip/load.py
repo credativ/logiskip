@@ -40,8 +40,6 @@ load_registry = LoadRegistry()
 class BaseLoad:
     """Base class for logiskip load definitions"""
 
-    table_map: dict[str, Optional[str]]
-
     @property
     def src_dialect(self) -> str:
         """Dialect name of source"""
