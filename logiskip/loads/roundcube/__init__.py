@@ -4,4 +4,4 @@ from logiskip.load import BaseLoad
 
 
 class RoundcubeLoad(BaseLoad, name="roundcube", version_constraint="==1.4.1"):
-    mysql_postgresql_tables = {"system": None}
+    default_tables = {"system": None}

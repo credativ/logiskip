@@ -78,13 +78,19 @@ class BaseLoad:
 
     def get_dest_table_name(self, src_table_name: str) -> str:
         """Determine destination table name"""
-        table_map = getattr(self, f"{self.src_dialect}_{self.dest_dialect}_tables", {})
+        table_map = getattr(
+            self,
+            f"{self.src_dialect}_{self.dest_dialect}_tables",
+            getattr(self, "default_tables", {}),
+        )
         return table_map.get(src_table_name, src_table_name)
 
     def get_dest_field(self, src_table: Table, src_field: str) -> str:
         """Determine the destination field name"""
         field_map = getattr(
-            self, f"{self.src_dialect}_{self.dest_dialect}_fields_{src_table.name}", {}
+            self,
+            f"{self.src_dialect}_{self.dest_dialect}_fields_{src_table.name}",
+            getattr(self, f"default_fields_{src_table.name}", {}),
         )
         return field_map.get(src_field, src_field)
 
@@ -101,7 +107,7 @@ class BaseLoad:
         convert_meth = getattr(
             self,
             f"{self.src_dialect}_{self.dest_dialect}_table_{src_table.name}",
-            self._convert_table_default,
+            getattr(self, f"default_table_{src_table.name}", self._convert_table_default),
         )
         return convert_meth(src_table, dest_table)
 
@@ -125,7 +131,7 @@ class BaseLoad:
         convert_meth = getattr(
             self,
             f"{self.src_dialect}_{self.dest_dialect}_row_{src_table.name}",
-            self._convert_row_default,
+            getattr(self, f"default_row_{src_table.name}", self._convert_row_default),
         )
         return convert_meth(src_table, src_dict)
 
@@ -143,7 +149,11 @@ class BaseLoad:
             convert_meth = getattr(
                 self,
                 f"{self.src_dialect}_{self.dest_dialect}_field_{src_table.name}__{src_field}",
-                self._convert_field_default,
+                getattr(
+                    self,
+                    f"default_field_{src_table.name}__{src_field}",
+                    self._convert_field_default,
+                ),
             )
             dest_value = convert_meth(src_value)
 
