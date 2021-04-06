@@ -1,5 +1,6 @@
 """logiskip's base code for loads"""
 
+import logging
 import sys
 from typing import Any, Optional, Sequence, Union
 
@@ -15,6 +16,9 @@ else:
     import importlib_metadata as metadata
 
 
+_logger = logging.getLogger("logiskip")
+
+
 class LoadRegistry:
     """Registry object that collects and finds available loads"""
 
@@ -24,6 +28,7 @@ class LoadRegistry:
     def import_known_loads() -> None:
         for ep in metadata.entry_points().get("logiskip.load", []):
             __import__(ep.module)
+            _logger.debug("Found load %s", ep.module)
 
     def __init__(self):
         self._loads = {}
@@ -31,6 +36,7 @@ class LoadRegistry:
     def register(self, name: str, version_constraint: str, load_class: "BaseLoad") -> None:
         """Register a named load for given version constraints"""
         self._loads.setdefault(name, {})[version_constraint] = load_class
+        _logger.debug("Registered load %s for versions %s", name, version_constraint)
 
     def find(self, name: str, version: Union[Version, str]) -> Optional["BaseLoad"]:
         """Find a load matching the given name and version"""
@@ -40,8 +46,12 @@ class LoadRegistry:
         for constraint, load_class in self._loads.get(name, {}).items():
             spec = SimpleSpec(constraint)
             if spec.match(version):
+                _logger.debug(
+                    "Found load %s for versions %s, matching %s", name, constraint, version
+                )
                 return load_class
 
+        _logger.error("No load %s found for version %s", name, version)
         return None
 
 
@@ -71,6 +81,10 @@ class BaseLoad:
             else:
                 raise TypeError("No load name passed and load not in logiskip.loads namespace.")
 
+        # Store information on class for later use
+        cls.name = name
+        cls.version_constraint = version_constraint
+
         load_registry.register(name, version_constraint, cls)
 
     def __init__(self, src: Union[Engine, str], dest: Union[Engine, str]):
@@ -79,6 +93,7 @@ class BaseLoad:
         else:
             self.src_engine = src
         self.src_base = automap_base()
+        _logger.info("Discovering DDL for source (%s)", self.src_dialect)
         self.src_base.prepare(self.src_engine, reflect=True)
 
         if isinstance(dest, str):
@@ -86,6 +101,7 @@ class BaseLoad:
         else:
             self.dest_engine = dest
         self.dest_base = automap_base()
+        _logger.info("Discovering DDL for destination (%s)", self.dest_dialect)
         self.dest_base.prepare(self.dest_engine, reflect=True)
 
     def get_dest_table_name(self, src_table_name: str) -> str:
@@ -108,11 +124,15 @@ class BaseLoad:
 
     def convert_table(self, src_table: Table) -> None:
         """Convert one table from source to destination"""
+        _logger.info("Converting table %s", src_table.name)
+
         # Determine destination table
         dest_table_name = self.get_dest_table_name(src_table.name)
         if dest_table_name is None:
             # If dest_table_name is explicitly None, skip the table
+            _logger.info("Skipping table %s (explicitly disabled)", src_table.name)
             return None
+        _logger.debug("Table %s mapped to %s", src_table.name, dest_table_name)
         dest_table = self.dest_base.metadata.tables[dest_table_name]
 
         # Look for an explicit conversion method; resort to default implementation
@@ -129,7 +149,7 @@ class BaseLoad:
         dest_rows = []
         with self.src_engine.connect() as src_conn:
             for src_row in src_conn.execute(src_stmt):
-                # Convert to destinatoin row
+                # Convert to destination row
                 dest_row = self.convert_row(src_table, src_row._asdict())
                 dest_rows.append(dest_row)
 
@@ -139,6 +159,8 @@ class BaseLoad:
 
     def convert_row(self, src_table: Table, src_dict: dict[str, Any]) -> dict[str, Any]:
         """Convert a single row from a single table"""
+        _logger.debug("Converting row %s", str(src_dict.values()))
+
         # Look for an explicit conversion method; resort to default implementation
         convert_meth = getattr(
             self,
@@ -178,6 +200,7 @@ class BaseLoad:
 
     def migrate(self) -> None:
         """Run the migration defined by this load"""
+        _logger.info("Migrating %s from %s to %s", self.name, self.src_dialect, self.dest_dialect)
         # Handle all known tables in order
         with self.dest_engine.begin() as dest_conn:
             for src_table in self.src_base.metadata.tables.values():
@@ -186,6 +209,7 @@ class BaseLoad:
                     # Skip if result is empty
                     continue
                 dest_conn.execute(dest_stmt)
+        _logger.info("Migrated %s from %s to %s", self.name, self.src_dialect, self.dest_dialect)
 
 
 load_registry = LoadRegistry()
