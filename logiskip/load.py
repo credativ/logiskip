@@ -198,18 +198,27 @@ class BaseLoad:
     def _convert_field_default(self, src_value: Any) -> Any:
         return src_value
 
-    def migrate(self) -> None:
+    def migrate(self, commit: bool = True) -> None:
         """Run the migration defined by this load"""
         _logger.info("Migrating %s from %s to %s", self.name, self.src_dialect, self.dest_dialect)
         # Handle all known tables in order
-        with self.dest_engine.begin() as dest_conn:
-            for src_table in self.src_base.metadata.tables.values():
-                dest_stmt = self.convert_table(src_table)
-                if dest_stmt is None:
-                    # Skip if result is empty
-                    continue
-                dest_conn.execute(dest_stmt)
-        _logger.info("Migrated %s from %s to %s", self.name, self.src_dialect, self.dest_dialect)
+        with self.dest_engine.connect() as dest_conn:
+            with dest_conn.begin() as transaction:
+                for src_table in self.src_base.metadata.tables.values():
+                    dest_stmt = self.convert_table(src_table)
+                    if dest_stmt is None:
+                        # Skip if result is empty
+                        continue
+                    dest_conn.execute(dest_stmt)
+
+                # Roll-back if commit is not desired
+                if commit:
+                    _logger.info(
+                        "Migrated %s from %s to %s", self.name, self.src_dialect, self.dest_dialect
+                    )
+                else:
+                    transaction.rollback()
+                    _logger.warning("Transaction rolled back (explicitly requested)")
 
 
 load_registry = LoadRegistry()

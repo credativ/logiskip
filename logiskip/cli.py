@@ -20,9 +20,14 @@ _logger = logging.getLogger("logiskip")
 @click.option(
     "--load-version", prompt="Load version", help="Version of migrated application/schema"
 )
+@click.option(
+    "--dry-run", help="Roll back transaction instead of commiting", is_flag=True, default=False
+)
 @click_logging.simple_verbosity_option(_logger)
-def logiskip(source: str, destination: str, load_name: str, load_version: str) -> None:
+def logiskip(
+    source: str, destination: str, load_name: str, load_version: str, dry_run: bool
+) -> None:
     """Main executable for logiskip"""
     load_class = load_registry.find(load_name, load_version)
     load = load_class(source, destination)
-    load.migrate()
+    load.migrate(commit=not dry_run)
