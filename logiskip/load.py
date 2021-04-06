@@ -1,5 +1,6 @@
 """logiskip's base code for loads"""
 
+import sys
 from typing import Any, Optional, Sequence, Union
 
 from semantic_version import SimpleSpec, Version
@@ -8,11 +9,21 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.automap import automap_base
 
+if sys.version_info >= (3, 9):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata
+
 
 class LoadRegistry:
     """Registry object that collects and finds available loads"""
 
     _loads: dict[str, dict[str, "BaseLoad"]]
+
+    @staticmethod
+    def import_known_loads() -> None:
+        for ep in metadata.entry_points().get("logiskip.load", []):
+            __import__(ep.module)
 
     def __init__(self):
         self._loads = {}
@@ -32,9 +43,6 @@ class LoadRegistry:
                 return load_class
 
         return None
-
-
-load_registry = LoadRegistry()
 
 
 class BaseLoad:
@@ -178,3 +186,7 @@ class BaseLoad:
                     # Skip if result is empty
                     continue
                 dest_conn.execute(dest_stmt)
+
+
+load_registry = LoadRegistry()
+LoadRegistry.import_known_loads()

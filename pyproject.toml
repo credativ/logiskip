@@ -22,6 +22,9 @@ postgres = ["pg8000"]
 [tool.poetry.scripts]
 logiskip = 'logiskip.cli:logiskip'
 
+[tool.poetry.plugins."logiskip.load"]
+roundcube = "logiskip.loads.roundcube"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
