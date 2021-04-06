@@ -3,5 +3,5 @@
 from logiskip.load import BaseLoad
 
 
-class RoundcubeLoad(BaseLoad, load_name="roundcube", load_versions=["1.4.1"]):
+class RoundcubeLoad(BaseLoad, name="roundcube", version_constraint="==1.4.1"):
     pass
