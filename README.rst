@@ -4,7 +4,7 @@ logiskip - Logical database migration between RDBMSs
 Synopsis
 --------
 
-logiskip is a command-line tool written in Python (using `SQLAlchemy`_ that cam
+logiskip is a command-line tool written in Python (using `SQLAlchemy`_) that can
 migrate application data between different RDMSs, e.g. between MySQL and PostgreSQL.
 
 It is modular, with the possibility to define migration logic for applications in
