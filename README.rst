@@ -80,7 +80,7 @@ constraint. Here is an artificial example:
 	   dest_row = super()._convert_row_default(src_table, src_dict)
 
 	   # Get geolocation for address
-	   lat, lon = geocoder.reverse(dest_row["address"]
+	   lat, lon = geocoder.reverse(dest_row["address"])
 
 	   # Use SQLAlchemy to create a new geolocation entry
 	   session = sessionmaker(bind=self.dest_engine)()
