@@ -15,6 +15,7 @@ if sys.version_info >= (3, 9):
 else:
     import importlib_metadata as metadata
 
+from .util import add_default_driver
 
 _logger = logging.getLogger("logiskip")
 
@@ -89,6 +90,7 @@ class BaseLoad:
 
     def __init__(self, src: Union[Engine, str], dest: Union[Engine, str]):
         if isinstance(src, str):
+            src = add_default_driver(src)
             self.src_engine = create_engine(src)
         else:
             self.src_engine = src
@@ -97,6 +99,7 @@ class BaseLoad:
         self.src_base.prepare(self.src_engine, reflect=True)
 
         if isinstance(dest, str):
+            dest = add_default_driver(dest)
             self.dest_engine = create_engine(dest)
         else:
             self.dest_engine = dest
