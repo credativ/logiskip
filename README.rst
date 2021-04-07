@@ -75,7 +75,7 @@ constraint. Here is an artificial example:
        }
 
        def mysql_postgresql_row_users(self, src_table, src_dict):
-           """Do everse-geolocation for user addresses when migrating to PostgreSQL"""
+           """Do reverse-geolocation for user addresses when migrating to PostgreSQL"""
 	   # First, do the default conversion
 	   dest_row = super()._convert_row_default(src_table, src_dict)
 
