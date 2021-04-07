@@ -55,7 +55,7 @@ constraint. Here is an artificial example:
    from sqlalchemy.orm import sessionmaker
 
    class ExampleLoad(BaseLoad, name="example", version_constraint=">=1.0,<2.0"):
-       """Load for the application example within the semver contraint 1.x"""
+       """Load for the application example within the semver constraint 1.x"""
 
        # Table map for all migrations
        # Tables mapped to None are skipped
