@@ -4,7 +4,7 @@ from logiskip.load import BaseLoad
 
 
 class RoundcubeLoad(BaseLoad, name="roundcube", version_constraint="==1.4.1"):
-    # The "system" table is pre-fille dwith the schema version
+    # The "system" table is pre-filled with the schema version
     default_tables = {"system": None}
 
     # The "dictionary" table has an "id" field in MySQL
