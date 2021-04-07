@@ -3,7 +3,7 @@
 from logiskip.load import BaseLoad
 
 
-class RoundcubeLoad(BaseLoad, name="roundcube", version_constraint="==1.4.1"):
+class RoundcubeLoad(BaseLoad, name="roundcube", version_constraint=">=1.4,<1.6"):
     # The "system" table is pre-filled with the schema version
     default_tables = {"system": None}
 
