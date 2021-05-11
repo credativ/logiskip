@@ -39,6 +39,7 @@ postgres = ["pg8000"]
 logiskip = 'logiskip.cli:logiskip'
 
 [tool.poetry.plugins."logiskip.load"]
+default = "logiskip.loads.default"
 roundcube = "logiskip.loads.roundcube"
 
 [build-system]
